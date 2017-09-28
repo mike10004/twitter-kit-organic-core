@@ -6,7 +6,7 @@
     <name>twitter-kit-organic-core</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>twitter-kit-organic-core</artifactId>
-    <version>3.1.1r1-SNAPSHOT</version>
+    <version>3.1.1r1</version>
     <build>
         <pluginManagement>
             <plugins>
