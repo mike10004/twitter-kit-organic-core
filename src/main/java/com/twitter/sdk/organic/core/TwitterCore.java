@@ -28,22 +28,18 @@ public class TwitterCore {
 
     public static final String TAG = "Twitter";
 
-    SessionManager<TwitterSession> twitterSessionManager;
-
     private final TwitterAuthConfig authConfig;
     private final ConcurrentHashMap<Session, TwitterApiClient> apiClients;
 
-    public TwitterCore(Twitter twitter, TwitterAuthConfig authConfig, SessionManager<TwitterSession> authenticatedSessionManager) {
-        this(twitter, authConfig, new ConcurrentHashMap<>(), authenticatedSessionManager);
+    public TwitterCore(Twitter twitter, TwitterAuthConfig authConfig) {
+        this(twitter, authConfig, new ConcurrentHashMap<>());
     }
 
     // Testing only
     TwitterCore(Twitter twitter, TwitterAuthConfig authConfig,
-                ConcurrentHashMap<Session, TwitterApiClient> apiClients,
-                SessionManager<TwitterSession> authenticatedSessionManager) {
+                ConcurrentHashMap<Session, TwitterApiClient> apiClients) {
         this.authConfig = authConfig;
         this.apiClients = apiClients;
-        this.twitterSessionManager = authenticatedSessionManager;
     }
 
     public String getVersion() {
@@ -57,13 +53,6 @@ public class TwitterCore {
     /* *********************************************************************************************
      *                      BEGIN PUBLIC API METHODS                                               *
      * *********************************************************************************************/
-
-    /**
-     * @return the {@link com.twitter.sdk.organic.core.SessionManager} for user sessions.
-     */
-    public SessionManager<TwitterSession> getSessionManager() {
-        return twitterSessionManager;
-    }
 
     /**
      * Creates {@link com.twitter.sdk.organic.core.TwitterApiClient} from authenticated

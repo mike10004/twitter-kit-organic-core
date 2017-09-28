@@ -37,8 +37,13 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import okio.ByteString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class OAuth1aParameters {
+
+    private static final Logger log = LoggerFactory.getLogger(OAuth1aParameters.class);
+
     private static final String VERSION = "1.0";
     private static final String SIGNATURE_METHOD = "HMAC-SHA1";
 
@@ -145,13 +150,13 @@ class OAuth1aParameters {
             final byte[] signatureBytes = mac.doFinal(signatureBaseBytes);
             return ByteString.of(signatureBytes, 0, signatureBytes.length).base64();
         } catch (InvalidKeyException e) {
-            Twitter.getLogger().e(TwitterCore.TAG, "Failed to calculate signature", e);
+            log.error("Failed to calculate signature", e);
             return "";
         } catch (NoSuchAlgorithmException e) {
-            Twitter.getLogger().e(TwitterCore.TAG, "Failed to calculate signature", e);
+            log.error("Failed to calculate signature", e);
             return "";
         } catch (UnsupportedEncodingException e) {
-            Twitter.getLogger().e(TwitterCore.TAG, "Failed to calculate signature", e);
+            log.error("Failed to calculate signature", e);
             return "";
         }
     }

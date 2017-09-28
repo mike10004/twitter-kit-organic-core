@@ -18,7 +18,7 @@
 package com.twitter.sdk.organic.core.identity;
 
 import com.github.mike10004.twitter.organic.Uri;
-import com.twitter.sdk.organic.core.Twitter;
+import com.twitter.sdk.organic.core.TwitterApiException;
 import com.twitter.sdk.organic.core.TwitterAuthConfig;
 import com.twitter.sdk.organic.core.TwitterAuthException;
 import com.twitter.sdk.organic.core.TwitterAuthToken;
@@ -29,6 +29,8 @@ import com.twitter.sdk.organic.core.internal.oauth.OAuth1aService;
 import com.twitter.sdk.organic.core.internal.oauth.OAuthConstants;
 import com.twitter.sdk.organic.core.internal.oauth.OAuthResponse;
 import okhttp3.OkHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -36,6 +38,8 @@ import java.io.IOException;
  * Client for requesting authorization and email from the user.
  */
 public class TwitterAuthClient {
+
+    private static final Logger log = LoggerFactory.getLogger(TwitterApiException.class);
 
     final TwitterCore twitterCore;
     final TwitterApi twitterApi;
@@ -51,7 +55,6 @@ public class TwitterAuthClient {
     }
 
     public OAuthController authorize(Uri baseRedirectUri) {
-        Twitter.getLogger().d(TwitterCore.TAG, "Using OAuth");
         OAuth1aService oauthService = new OAuth1aService(twitterCore, twitterApi, httpClient, baseRedirectUri);
         return new OAuthController(oauthService);
     }
@@ -75,8 +78,7 @@ public class TwitterAuthClient {
         }
 
         public AuthorizationUriResponse requestAuthorizationUrl() throws IOException, TwitterAuthException {
-            // Step 1. Obtain a request token to start the sign in flow.
-            Twitter.getLogger().d(TwitterCore.TAG, "Obtaining request token to start the sign in flow");
+            log.debug("Step 1: Obtaining request token to start the sign in flow");
             OAuthResponse tempTokenResponse = oAuth1aService.requestTempToken();
             TwitterAuthToken requestToken = tempTokenResponse.authToken;
             final String authorizeUrl = oAuth1aService.getAuthorizeUrl(requestToken);
@@ -93,15 +95,12 @@ public class TwitterAuthClient {
          * @return the new session
          */
         public TwitterSession handleRedirect(AuthorizationUriResponse authorizationUriResponse, Uri redirectedUri) throws IOException, TwitterAuthException {
-            Twitter.getLogger().d(TwitterCore.TAG, "requesting access token");
             final String verifier = redirectedUri.getQueryParameter(OAuthConstants.PARAM_VERIFIER);
             if (verifier != null) {
-                // Step 3. Convert the request token to an access token.
-                Twitter.getLogger().d(TwitterCore.TAG,
-                        "Converting the request token to an access token.");
+                // Step 2 is performed by user out of band
+                log.debug("Step 3: Converting the request token to an access token.");
                 OAuthResponse oauthResponse = oAuth1aService.requestAccessToken(authorizationUriResponse.requestToken, verifier);
                 TwitterSession session = new TwitterSession(new TwitterAuthToken(oauthResponse.authToken.token, oauthResponse.authToken.secret), oauthResponse.userId, oauthResponse.userName);
-                twitterCore.getSessionManager().setActiveSession(session);
                 return session;
             }
             // If we get here, we failed to complete authorization.

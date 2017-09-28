@@ -28,12 +28,16 @@ import com.twitter.sdk.organic.core.models.ApiErrors;
 import com.twitter.sdk.organic.core.models.SafeListAdapter;
 import com.twitter.sdk.organic.core.models.SafeMapAdapter;
 
+import org.slf4j.LoggerFactory;
 import retrofit2.Response;
 
 /**
  * Represents a Twitter API error.
  */
 public class TwitterApiException extends TwitterException {
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(TwitterApiException.class);
+
     public static final int DEFAULT_ERROR_CODE = 0;
     private final ApiError apiError;
     private final TwitterRateLimit twitterRateLimit;
@@ -96,7 +100,7 @@ public class TwitterApiException extends TwitterException {
                 return parseApiError(body);
             }
         } catch (Exception e) {
-            Twitter.getLogger().e(TwitterCore.TAG, "Unexpected response", e);
+            log.error("Unexpected response", e);
         }
 
         return null;
@@ -113,7 +117,7 @@ public class TwitterApiException extends TwitterException {
                 return apiErrors.errors.get(0);
             }
         } catch (JsonSyntaxException e) {
-            Twitter.getLogger().e(TwitterCore.TAG, "Invalid json: " + body, e);
+            log.error("Invalid json: " + body, e);
         }
         return null;
     }

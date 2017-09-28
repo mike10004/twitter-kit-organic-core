@@ -1,6 +1,5 @@
 package com.twitter.sdk.organic.core;
 
-import com.github.mike10004.twitter.organic.TwitterSessions;
 import com.google.common.io.Resources;
 import com.twitter.sdk.organic.core.internal.TwitterApi;
 import com.twitter.sdk.organic.core.models.Tweet;
@@ -51,7 +50,7 @@ public class TwitterApiClientTest {
         TwitterConfig config = new TwitterConfig.Builder().build();
         Twitter twitter = new Twitter(config);
         TwitterAuthConfig authConfig = new TwitterAuthConfig(consumer.clientId, consumer.clientSecret);
-        TwitterCore core = new TwitterCore(twitter, authConfig, TwitterSessions.inMemorySessionManager());
+        TwitterCore core = new TwitterCore(twitter, authConfig);
         TwitterAuthToken token = new TwitterAuthToken(consumer.badge.accessToken, consumer.badge.accessSecret);
         TwitterSession session = new TwitterSession(token, TwitterSession.UNKNOWN_USER_ID, TwitterSession.UNKNOWN_USER_NAME);
         TwitterApiClient client = core.getApiClient(session, api);

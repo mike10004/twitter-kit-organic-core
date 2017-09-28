@@ -21,16 +21,8 @@ package com.twitter.sdk.organic.core;
  *  The {@link Twitter} class stores common configuration and state for TwitterKit SDK.
  */
 public final class Twitter {
-    public static final String TAG = "Twitter";
-    static final Logger DEFAULT_LOGGER = new DefaultLogger();
 
     public Twitter(TwitterConfig config) {
     }
 
-    /**
-     * @return the global {@link Logger}.
-     */
-    public static Logger getLogger() {
-        return DEFAULT_LOGGER;
-    }
 }

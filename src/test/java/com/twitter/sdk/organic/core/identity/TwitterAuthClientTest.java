@@ -1,6 +1,5 @@
 package com.twitter.sdk.organic.core.identity;
 
-import com.github.mike10004.twitter.organic.TwitterSessions;
 import com.github.mike10004.twitter.organic.Uri;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -279,7 +278,7 @@ public class TwitterAuthClientTest {
         TwitterConfig twitterConfig = new TwitterConfig.Builder().build();
         Twitter twitter = new Twitter(twitterConfig);
         TwitterAuthConfig authConfig = new TwitterAuthConfig(consumer.clientId, consumer.clientSecret);
-        TwitterCore core = new TwitterCore(twitter, authConfig, TwitterSessions.inMemorySessionManager());
+        TwitterCore core = new TwitterCore(twitter, authConfig);
         OkHttpClient client = new OkHttpClient.Builder()
                 .addInterceptor(new EchoInterceptor())
                 .build();

@@ -59,49 +59,6 @@ public class OAuth2Service extends OAuthService {
     }
 
     /**
-     * Requests a guest auth token.
-     * @param callback The callback interface to invoke when when the request completes.
-     */
-    public void requestGuestAuthToken(final Callback<GuestAuthToken> callback) {
-        final Callback<OAuth2Token> appAuthCallback = new Callback<OAuth2Token>() {
-            @Override
-            public void success(Result<OAuth2Token> result) {
-                final OAuth2Token appAuthToken = result.data;
-                // Got back an app auth token, now request a guest auth token.
-                final Callback<GuestTokenResponse> guestTokenCallback
-                        = new Callback<GuestTokenResponse>() {
-                    @Override
-                    public void success(Result<GuestTokenResponse> result) {
-                        // Return a GuestAuthToken that includes the guestToken.
-                        final GuestAuthToken guestAuthToken = new GuestAuthToken(
-                                appAuthToken.getTokenType(), appAuthToken.getAccessToken(),
-                                result.data.guestToken);
-                        callback.success(new Result<>(guestAuthToken, null));
-                    }
-
-                    @Override
-                    public void failure(TwitterException error) {
-                        Twitter.getLogger().e(TwitterCore.TAG,
-                                "Your app may not allow guest auth. Please talk to us "
-                                        + "regarding upgrading your consumer key.", error);
-                        callback.failure(error);
-                    }
-                };
-                requestGuestToken(guestTokenCallback, appAuthToken);
-            }
-
-            @Override
-            public void failure(TwitterException error) {
-                Twitter.getLogger().e(TwitterCore.TAG, "Failed to get app auth token", error);
-                if (callback != null) {
-                    callback.failure(error);
-                }
-            }
-        };
-        requestAppAuthToken(appAuthCallback);
-    }
-
-    /**
      * Requests an application-only auth token.
      *
      * @param callback The callback interface to invoke when when the request completes.
@@ -109,24 +66,6 @@ public class OAuth2Service extends OAuthService {
     void requestAppAuthToken(final Callback<OAuth2Token> callback) {
         api.getAppAuthToken(getAuthHeader(), OAuthConstants.GRANT_TYPE_CLIENT_CREDENTIALS)
                 .enqueue(callback);
-    }
-
-    /**
-     * Requests a guest token.
-     *
-     * @param callback The callback interface to invoke when when the request completes.
-     * @param appAuthToken The application-only auth token.
-     */
-    void requestGuestToken(final Callback<GuestTokenResponse> callback,
-            OAuth2Token appAuthToken) {
-        api.getGuestToken(getAuthorizationHeader(appAuthToken)).enqueue(callback);
-    }
-
-    /**
-     * Gets authorization header for inclusion in HTTP request headers.
-     */
-    private String getAuthorizationHeader(OAuth2Token token) {
-        return OAuthConstants.AUTHORIZATION_BEARER + " " + token.getAccessToken();
     }
 
     private String getAuthHeader() {
