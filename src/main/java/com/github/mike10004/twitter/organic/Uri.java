@@ -19,6 +19,7 @@ package com.github.mike10004.twitter.organic;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -2175,6 +2176,11 @@ public abstract class Uri implements Comparable<Uri> {
         }
 
         return true;
+    }
+
+
+    public URI toJavaNetURI() {
+        return URI.create(toString());
     }
 
     /**

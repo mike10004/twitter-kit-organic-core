@@ -1,7 +1,8 @@
-package com.twitter.sdk.organic.core;
+package com.twitter.sdk.organic.core.test;
 
 import com.github.mike10004.twitter.organic.Uri;
 import com.google.common.net.HostAndPort;
+import com.google.common.net.MediaType;
 import fi.iki.elonen.NanoHTTPD;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,7 @@ public class NanoServer implements java.io.Closeable {
 
     public interface RequestHandler {
         @Nullable
-        NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session);
+        NanoHTTPD.Response serve(NanoHTTPD.IHTTPSession session) throws IOException;
 
         NanoHTTPD.Response NOT_FOUND_RESPONSE = NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND, "text/plain", "404 Not Found");
 
@@ -41,8 +42,8 @@ public class NanoServer implements java.io.Closeable {
 
     }
 
-    public static NanoHTTPD.Response response(int status, String contentType, String contentText) {
-        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.lookup(status), contentType, contentText);
+    public static NanoHTTPD.Response response(int status, MediaType contentType, String contentText) {
+        return NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.lookup(status), contentType.toString(), contentText);
     }
 
     public NanoServer() throws IOException {
@@ -62,13 +63,23 @@ public class NanoServer implements java.io.Closeable {
             public Response serve(IHTTPSession session) {
                 numRequestsHeard.incrementAndGet();
                 for (RequestHandler handler : requestHandlers) {
-                    Response response = handler.serve(session);
+                    Response response;
+                    try {
+                        response = handler.serve(session);
+                    } catch (IOException e) {
+                        LoggerFactory.getLogger(getClass()).error("handler threw exception", e);
+                        response = response(500, MediaType.PLAIN_TEXT_UTF_8, e.toString());
+                    }
                     if (response != null) {
                         numRequestsMatched.incrementAndGet();
                         return response;
                     }
                 }
-                return defaultRequestHandler.serve(session);
+                try {
+                    return defaultRequestHandler.serve(session);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         };
         server.start();

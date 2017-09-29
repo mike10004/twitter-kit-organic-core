@@ -29,6 +29,9 @@ import com.twitter.sdk.organic.core.services.AccountService;
 import com.twitter.sdk.organic.core.services.CollectionService;
 import com.twitter.sdk.organic.core.services.ConfigurationService;
 import com.twitter.sdk.organic.core.services.FavoriteService;
+import com.twitter.sdk.organic.core.services.FollowersService;
+import com.twitter.sdk.organic.core.services.FriendsService;
+import com.twitter.sdk.organic.core.services.FriendshipsService;
 import com.twitter.sdk.organic.core.services.ListService;
 import com.twitter.sdk.organic.core.services.MediaService;
 import com.twitter.sdk.organic.core.services.SearchService;
@@ -36,6 +39,7 @@ import com.twitter.sdk.organic.core.services.StatusesService;
 
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.twitter.sdk.organic.core.services.UsersService;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -145,6 +149,26 @@ public class TwitterApiClient {
      */
     public MediaService getMediaService() {
         return getService(MediaService.class);
+    }
+
+    /**
+     *
+     * @return users service to access user info
+     */
+    public UsersService getUsersService() {
+        return getService(UsersService.class);
+    }
+
+    public FriendsService getFriendsService() {
+        return getService(FriendsService.class);
+    }
+
+    public FollowersService getFollowersService() {
+        return getService(FollowersService.class);
+    }
+
+    public FriendshipsService getFriendshipsService() {
+        return getService(FriendshipsService.class);
     }
 
     /**

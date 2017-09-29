@@ -1,4 +1,4 @@
-package com.twitter.sdk.organic.core;
+package com.twitter.sdk.organic.core.test;
 
 import com.google.gson.Gson;
 

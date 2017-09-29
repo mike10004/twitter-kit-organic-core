@@ -6,7 +6,11 @@
     <name>twitter-kit-organic-core</name>
     <groupId>com.github.mike10004</groupId>
     <artifactId>twitter-kit-organic-core</artifactId>
-    <version>3.1.1r1</version>
+    <version>3.1.1r2-SNAPSHOT</version>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    </properties>
     <build>
         <pluginManagement>
             <plugins>

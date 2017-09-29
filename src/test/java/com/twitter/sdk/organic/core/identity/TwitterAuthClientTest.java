@@ -6,8 +6,8 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import com.twitter.sdk.organic.core.NanoServer;
-import com.twitter.sdk.organic.core.OauthConsumer;
+import com.twitter.sdk.organic.core.test.NanoServer;
+import com.twitter.sdk.organic.core.test.OauthConsumer;
 import com.twitter.sdk.organic.core.Twitter;
 import com.twitter.sdk.organic.core.TwitterAuthConfig;
 import com.twitter.sdk.organic.core.TwitterConfig;
@@ -15,6 +15,7 @@ import com.twitter.sdk.organic.core.TwitterCore;
 import com.twitter.sdk.organic.core.TwitterSession;
 import com.twitter.sdk.organic.core.internal.TwitterApi;
 import com.twitter.sdk.organic.core.internal.oauth.OAuthConstants;
+import com.twitter.sdk.organic.core.test.TokenGenerator;
 import fi.iki.elonen.NanoHTTPD;
 import okhttp3.Headers;
 import okhttp3.Interceptor;
@@ -34,7 +35,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.bitcoinj.core.Base58;
 import org.junit.Test;
 
 import java.io.File;
@@ -47,7 +47,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -57,6 +56,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.net.MediaType.HTML_UTF_8;
+import static com.google.common.net.MediaType.PLAIN_TEXT_UTF_8;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -86,7 +87,7 @@ public class TwitterAuthClientTest {
                                 "oauth_token_secret", "2kWe0NQe21Wzh1iR1MnH0130Yljfeew8",
                                 "oauth_callback_confirmed", "true"
                         );
-                        return NanoServer.response(200, "text/html;charset=utf-8", mj.join(responseContent));
+                        return NanoServer.response(200, HTML_UTF_8, mj.join(responseContent));
                     } else if ("/oauth/access_token".equals(requestUri.getPath())) {
                         if (!isOauthAuthorizationHeaderPresent(session)) {
                             return badRequest("authorization header must be present for access token request");
@@ -113,7 +114,7 @@ public class TwitterAuthClientTest {
                                     .put("screen_name", screenName)
                                     .put("x_auth_expires", "0")
                                     .build();
-                            return NanoServer.response(200, "text/html;charset=utf-8", mj.join(responseContent));
+                            return NanoServer.response(200, HTML_UTF_8, mj.join(responseContent));
                         } else {
                             return badRequest("invalid verifier");
                         }
@@ -122,7 +123,7 @@ public class TwitterAuthClientTest {
                         String oauth_token = getFirstValue(session.getParameters(), "oauth_token");
                         String authorizationHeader = authzHeaderMap.get(oauth_token);
                         if (authorizationHeader == null) {
-                            return NanoServer.response(400, "text/plain", String.format("no authorization header has been recorded for oauth_token=%s", oauth_token));
+                            return NanoServer.response(400, PLAIN_TEXT_UTF_8, String.format("no authorization header has been recorded for oauth_token=%s", oauth_token));
                         }
                         Multimap<String, String> oauthParams = parseOAuthAuthorizationHeader(authorizationHeader);
                         String verifierCode = requestTokenToVerifier.get(oauth_token);
@@ -131,7 +132,7 @@ public class TwitterAuthClientTest {
                                 .buildUpon()
                                 .appendQueryParameter(OAuthConstants.PARAM_VERIFIER, verifierCode)
                                 .build();
-                        NanoHTTPD.Response response = NanoServer.response(REDIRECT_STATUS_CODE, "text/plain", "");
+                        NanoHTTPD.Response response = NanoServer.response(REDIRECT_STATUS_CODE, PLAIN_TEXT_UTF_8, "");
                         response.addHeader("Location", redirectUri.toString());
                         System.out.format("redirecting to %s%n", redirectUri);
                         return response;
@@ -147,7 +148,7 @@ public class TwitterAuthClientTest {
                                 "    </form>" +
                                 "  </body>" +
                                 "</html>";
-                        return NanoServer.response(200, "text/html", html);
+                        return NanoServer.response(200, HTML_UTF_8, html);
                     }
                 }
                 return null;
@@ -207,7 +208,7 @@ public class TwitterAuthClientTest {
     }
 
     private static NanoHTTPD.Response badRequest(String msg) {
-        return NanoServer.response(400, "text/plain", msg);
+        return NanoServer.response(400, PLAIN_TEXT_UTF_8, msg);
     }
 
     private static boolean isOauthAuthorizationHeaderPresent(NanoHTTPD.IHTTPSession session) {
@@ -300,11 +301,11 @@ public class TwitterAuthClientTest {
                         twsession = ctrl.handleRedirect(authorizationUriResponse, redirectedUri);
                     } catch (IOException e) {
                         e.printStackTrace(System.err);
-                        return NanoServer.response(500, "text/plain", e.toString());
+                        return NanoServer.response(500, PLAIN_TEXT_UTF_8, e.toString());
                     }
                     sessionRef.set(twsession);
                     latch.countDown();
-                    return NanoServer.response(200, "text/plain", String.format("app %s authorized by %s%n", consumer.clientId, twsession.getUserName()));
+                    return NanoServer.response(200, PLAIN_TEXT_UTF_8, String.format("app %s authorized by %s%n", consumer.clientId, twsession.getUserName()));
                 }
                 return null;
             });
@@ -320,23 +321,8 @@ public class TwitterAuthClientTest {
 
     }
 
-    private static Random random = new Random(TwitterAuthClientTest.class.hashCode());
-
     private static Iterator<String> oauthTokenGenerator() {
-        return new Iterator<String>() {
-
-            @Override
-            public boolean hasNext() {
-                return true;
-            }
-
-            @Override
-            public String next() {
-                byte[] bytes = new byte[16];
-                random.nextBytes(bytes);
-                return Base58.encode(bytes);
-            }
-        };
+        return new TokenGenerator();
     }
 
 }
